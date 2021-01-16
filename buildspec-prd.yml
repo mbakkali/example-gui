@@ -2,16 +2,17 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 10
+      nodejs: 14
     commands:
       - npm install -g @angular/cli
       - node --version
+
   pre_build:
     commands:
       - npm install
   build:
     commands:
-      - npm run build:prd
+      - npm run build:ppd
 artifacts:
   files:
     - '**/*'
