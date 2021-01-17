@@ -1,11 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { Subscription, Observable } from 'rxjs';
-import { AuthService } from '../_services/auth.service';
-import { Router } from '@angular/router';
-import { ConfirmPasswordValidator } from './confirm-password.validator';
-import { UserModel } from '../_models/user.model';
-import { first } from 'rxjs/operators';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Observable, Subject, Subscription} from 'rxjs';
+import {AuthService} from '../_services/auth.service';
+import {Router} from '@angular/router';
+import {UserModel} from '../_models/user.model';
+import {first} from 'rxjs/operators';
+import {CustomValidators} from "./custom-validators";
+import {ISignUpResult} from "amazon-cognito-identity-js";
 
 @Component({
   selector: 'app-registration',
@@ -15,17 +16,22 @@ import { first } from 'rxjs/operators';
 export class RegistrationComponent implements OnInit, OnDestroy {
   registrationForm: FormGroup;
   hasError: boolean;
-  isLoading$: Observable<boolean>;
+  isLoading$: Subject<boolean> = new Subject();
+
+  error: string;
+
 
   // private fields
   private unsubscribe: Subscription[] = []; // Read more: => https://brianflove.com/2016/12/11/anguar-2-unsubscribe-observables/
+  formRegister: FormGroup;
+  showConfirmPage: boolean;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
-    this.isLoading$ = this.authService.isLoading$;
+    this.formRegister = this.createSignupForm();
     // redirect to home if already logged in
     if (this.authService.currentUserValue) {
       this.router.navigate(['/']);
@@ -33,7 +39,6 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.initForm();
   }
 
   // convenience getter for easy access to form fields
@@ -41,48 +46,66 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     return this.registrationForm.controls;
   }
 
-  initForm() {
-    this.registrationForm = this.fb.group(
-      {
-        fullname: [
-          '',
-          Validators.compose([
-            Validators.required,
-            Validators.minLength(3),
-            Validators.maxLength(100),
-          ]),
-        ],
-        email: [
-          'qwe@qwe.qwe',
-          Validators.compose([
-            Validators.required,
-            Validators.email,
-            Validators.minLength(3),
-            Validators.maxLength(320), // https://stackoverflow.com/questions/386294/what-is-the-maximum-length-of-a-valid-email-address
-          ]),
-        ],
-        password: [
-          '',
-          Validators.compose([
-            Validators.required,
-            Validators.minLength(3),
-            Validators.maxLength(100),
-          ]),
-        ],
-        cPassword: [
-          '',
-          Validators.compose([
-            Validators.required,
-            Validators.minLength(3),
-            Validators.maxLength(100),
-          ]),
-        ],
-        agree: [false, Validators.compose([Validators.required])],
-      },
-      {
-        validator: ConfirmPasswordValidator.MatchPassword,
-      }
+  createSignupForm(): FormGroup {
+    return this.fb.group(
+        {
+          email: [
+            null,
+            Validators.required
+          ],
+          agree: [false, Validators.compose([Validators.required])],
+          password: [
+            null,
+            Validators.compose([
+              Validators.required,
+              // check whether the entered password has a number
+              CustomValidators.patternValidator(/\d/, {
+                hasNumber: true
+              }),
+              // check whether the entered password has upper case letter
+              CustomValidators.patternValidator(/[A-Z]/, {
+                hasCapitalCase: true
+              }),
+              // check whether the entered password has a lower case letter
+              CustomValidators.patternValidator(/[a-z]/, {
+                hasSmallCase: true
+              }),
+              // check whether the entered password has a special character
+              CustomValidators.patternValidator(
+                  /[ !@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+                  {
+                    hasSpecialCharacters: true
+                  }
+              ),
+              Validators.minLength(8)
+            ])
+          ],
+          confirmPassword: [null, Validators.compose([Validators.required])]
+        },
+        {
+          // check whether our password and confirm password match
+          validator: CustomValidators.passwordMatchValidator
+        }
     );
+  }
+
+  signUp() {
+    this.error = null;
+    this.isLoading$.next(true);
+    this.authService.signup(
+        this.formRegister.controls.email.value,
+        this.formRegister.controls.password.value).subscribe((result: ISignUpResult) => {
+      this.isLoading$.next(false);
+      if (!result.userConfirmed) {
+        this.showConfirmPage = true;
+      } else {
+        this.router.navigateByUrl('login');
+      }
+    }, reason => {
+      this.error = reason.code + ' - ' + reason.message;
+      console.error(reason);
+      this.isLoading$.next(false);
+    });
   }
 
   submit() {

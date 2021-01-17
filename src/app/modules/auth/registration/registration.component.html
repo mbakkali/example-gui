@@ -5,8 +5,8 @@
     class="form"
     novalidate="novalidate"
     id="kt_login_signup_form"
-    [formGroup]="registrationForm"
-    (ngSubmit)="submit()"
+    [formGroup]="formRegister"
+    (ngSubmit)="signUp()"
   >
     <!--begin::Title-->
     <div class="pb-13 pt-lg-0 pt-5">
@@ -20,198 +20,83 @@
     <!--end::Title-->
 
     <!-- begin::Alert error-->
-    <ng-container *ngIf="hasError">
+    <div *ngIf="error">
       <div
         class="mb-10 alert alert-custom alert-light-danger alert-dismissible"
       >
-        <div class="alert-text">The registration details are incorrect</div>
+        <div class="alert-text"> {{error}}</div>
       </div>
-    </ng-container>
+    </div>
     <!-- end::Alert error-->
 
     <!--begin::Form group-->
     <div class="form-group">
-      <label class="font-size-h6 font-weight-bolder text-dark">Fullname</label>
-      <input
-        class="form-control form-control-solid h-auto py-7 px-6 rounded-lg font-size-h6"
-        type="text"
-        name="fullname"
-        formControlName="fullname"
-        placeholder="Fullname"
-        autocomplete="off"
-        [ngClass]="{
-          'is-invalid': registrationForm.controls['fullname'].invalid
-        }"
-      />
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'required',
-          message: 'Fullname is required',
-          control: registrationForm.controls['fullname']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'minlength',
-          message: 'Fullname should have at least 3 symbols',
-          control: registrationForm.controls['fullname']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'maxLength',
-          message: 'Fullname should have maximum 100 symbols',
-          control: registrationForm.controls['fullname']
-        }"
-      ></ng-container>
-    </div>
-    <!--end::Form group-->
 
-    <!--begin::Form group-->
-    <div class="form-group">
-      <label class="font-size-h6 font-weight-bolder text-dark">Email</label>
-      <input
-        class="form-control form-control-solid h-auto py-7 px-6 rounded-lg font-size-h6"
-        type="email"
-        placeholder="Email"
-        name="email"
-        formControlName="email"
-        autocomplete="off"
-        [ngClass]="{ 'is-invalid': registrationForm.controls['email'].invalid }"
-      />
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'required',
-          message: 'Email is required',
-          control: registrationForm.controls['email']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'email',
-          message: 'Email is invalid',
-          control: registrationForm.controls['email']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'minlength',
-          message: 'Email should have at least 3 symbols',
-          control: registrationForm.controls['email']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'maxLength',
-          message: 'Email should have maximum 360 symbols',
-          control: registrationForm.controls['email']
-        }"
-      ></ng-container>
-    </div>
-    <!--end::Form group-->
+      <div class="form-group">
+        <label class="font-size-h6 font-weight-bolder text-dark" for="email" [ngClass]="formRegister.controls['email'].invalid ? 'text-danger' : ''">Email Address</label>
+        <input id="email" formControlName="email" type="email" class="form-control form-control-solid h-auto py-7 px-6 rounded-lg font-size-h6" [ngClass]="formRegister.controls['email'].invalid ? 'is-invalid' : ''">
+        <label class="text-danger" *ngIf="formRegister.controls['email'].hasError('required')">
+          Email is Required!
+        </label>
+        <label class="text-danger" *ngIf="formRegister.controls['email'].hasError('email')">
+          Enter a valid email address!
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="font-size-h6 font-weight-bolder text-dark" for="password" [ngClass]="formRegister.controls['password'].invalid ? 'text-danger' : ''">Password:</label>
+        <input id="password" formControlName="password" type="password" class="form-control form-control-solid h-auto py-7 px-6 rounded-lg font-size-h6" [ngClass]="formRegister.controls['password'].invalid ? 'is-invalid' : ''">
+        <label class="text-danger col" *ngIf="formRegister.controls['password'].hasError('required')">
+          Password is Required!
+        </label>
+        <label class="col" [ngClass]="formRegister.controls['password'].hasError('required') || formRegister.controls['password'].hasError('minlength')  ? 'text-danger' : 'text-success'">
+          <i class="material-icons">{{ formRegister.controls['password'].hasError('required') ||
+          formRegister.controls['password'].hasError('minlength') ? 'cancel' :
+                  'check_circle' }}</i>
+          Must be at least 8 characters!
+        </label>
+        <label class="col" [ngClass]="formRegister.controls['password'].hasError('required') || formRegister.controls['password'].hasError('hasNumber')  ? 'text-danger' : 'text-success'">
+          <i class="material-icons">{{ formRegister.controls['password'].hasError('required') ||
+          formRegister.controls['password'].hasError('hasNumber') ? 'cancel' :
+                  'check_circle' }}</i>
+          Must contain at least 1 number!
+        </label>
+        <label class="col" [ngClass]="formRegister.controls['password'].hasError('required') || formRegister.controls['password'].hasError('hasCapitalCase')  ? 'text-danger' : 'text-success'">
+          <i class="material-icons">{{ formRegister.controls['password'].hasError('required') ||
+          formRegister.controls['password'].hasError('hasCapitalCase') ? 'cancel' :
+                  'check_circle' }}</i>
+          Must contain at least 1 in Capital Case!
+        </label>
+        <label class="col" [ngClass]="formRegister.controls['password'].hasError('required') || formRegister.controls['password'].hasError('hasSmallCase')  ? 'text-danger' : 'text-success'">
+          <i class="material-icons">{{ formRegister.controls['password'].hasError('required') ||
+          formRegister.controls['password'].hasError('hasSmallCase') ? 'cancel' :
+                  'check_circle' }}</i>
+          Must contain at least 1 Letter in Small Case!
+        </label>
+        <label class="col" [ngClass]="formRegister.controls['password'].hasError('required') || formRegister.controls['password'].hasError('hasSpecialCharacters') ? 'text-danger' : 'text-success'">
+          <i class="material-icons">{{ formRegister.controls['password'].hasError('required') ||
+          formRegister.controls['password'].hasError('hasSpecialCharacters') ? 'cancel' :
+                  'check_circle' }}</i>
+          Must contain at least 1 Special Character!
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="font-size-h6 font-weight-bolder text-dark" for="confirmPassword" [ngClass]="formRegister.controls['confirmPassword'].invalid ? 'text-danger' : ''">Confirm
+          Password:</label>
+        <input id="confirmPassword" formControlName="confirmPassword" type="password" class="form-control form-control-solid h-auto py-7 px-6 rounded-lg font-size-h6"
+               [ngClass]="formRegister.controls['confirmPassword'].invalid ? 'is-invalid' : ''">
+        <label class="text-danger" *ngIf="formRegister.controls['confirmPassword'].hasError('required')">
+          Password is Required!
+        </label>
+        <label class="text-danger" *ngIf="formRegister.controls['confirmPassword'].hasError('NoPassswordMatch')">
+          Password do not match
+        </label>
+      </div>
 
-    <!--begin::Form group-->
-    <div class="form-group">
-      <label class="font-size-h6 font-weight-bolder text-dark pt-5"
-        >Password</label
-      >
-      <input
-        class="form-control form-control-solid h-auto py-7 px-6 rounded-lg font-size-h6"
-        type="password"
-        placeholder="Password"
-        name="password"
-        formControlName="password"
-        autocomplete="off"
-        [ngClass]="{
-          'is-invalid': registrationForm.controls['password'].invalid
-        }"
-      />
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'required',
-          message: 'Password is required',
-          control: registrationForm.controls['password']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'minlength',
-          message: 'Password should have at least 3 symbols',
-          control: registrationForm.controls['password']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'maxLength',
-          message: 'Password should have maximum 100 symbols',
-          control: registrationForm.controls['password']
-        }"
-      ></ng-container>
-    </div>
-    <!--end::Form group-->
+      <label class="text-danger" *ngIf="error">
+        {{error}}
+      </label>
 
-    <!--begin::Form group-->
-    <div class="form-group">
-      <label class="font-size-h6 font-weight-bolder text-dark pt-5"
-        >Confirm Password</label
-      >
-      <input
-        class="form-control form-control-solid h-auto py-7 px-6 rounded-lg font-size-h6"
-        type="password"
-        placeholder="Confirm password"
-        name="cPassword"
-        autocomplete="off"
-        formControlName="cPassword"
-        [ngClass]="{
-          'is-invalid': registrationForm.controls['cPassword'].invalid
-        }"
-      />
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'required',
-          message: 'Confirm Password is required',
-          control: registrationForm.controls['cPassword']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'minlength',
-          message: 'Confirm Password should have at least 3 symbols',
-          control: registrationForm.controls['cPassword']
-        }"
-      ></ng-container>
-      <ng-container
-        [ngTemplateOutlet]="formError"
-        [ngTemplateOutletContext]="{
-          validation: 'maxLength',
-          message: 'Confirm Password should have maximum 100 symbols',
-          control: registrationForm.controls['cPassword']
-        }"
-      ></ng-container>
-      <ng-container
-        *ngIf="
-          registrationForm.controls['cPassword'].errors &&
-          registrationForm.controls['cPassword'].errors.ConfirmPassword
-        "
-      >
-        <div class="fv-plugins-message-container">
-          <div class="fv-help-block">
-            'Passsword' and 'Confirm Password' didn't match.
-          </div>
-        </div>
-      </ng-container>
+
     </div>
     <!--end::Form group-->
 
@@ -231,11 +116,13 @@
 
     <!--begin::Form group-->
     <div class="form-group d-flex flex-wrap pb-lg-0 pb-3">
+
       <button
         type="submit"
         id="kt_login_signup_submit"
+        [ngStyle]="formRegister.invalid ? { cursor : 'not-allowed'} : {}"
         [disabled]="
-          registrationForm.invalid || !registrationForm.controls['agree'].value
+          formRegister.invalid || !formRegister.controls['agree'].value
         "
         class="btn btn-primary font-weight-bolder font-size-h6 px-8 py-4 my-3 mr-4"
       >

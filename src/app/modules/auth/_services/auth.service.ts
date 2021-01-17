@@ -1,11 +1,13 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { Observable, BehaviorSubject, of, Subscription } from 'rxjs';
-import { map, catchError, switchMap, finalize } from 'rxjs/operators';
-import { UserModel } from '../_models/user.model';
-import { AuthModel } from '../_models/auth.model';
-import { AuthHTTPService } from './auth-http';
-import { environment } from 'src/environments/environment';
-import { Router } from '@angular/router';
+import {Injectable, OnDestroy} from '@angular/core';
+import {BehaviorSubject, from, Observable, of, Subscription} from 'rxjs';
+import {catchError, finalize, map, switchMap} from 'rxjs/operators';
+import {UserModel} from '../_models/user.model';
+import {AuthModel} from '../_models/auth.model';
+import {AuthHTTPService} from './auth-http';
+import {environment} from 'src/environments/environment';
+import {Router} from '@angular/router';
+import {ISignUpResult} from 'amazon-cognito-identity-js';
+import {Auth} from 'aws-amplify';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +42,17 @@ export class AuthService implements OnDestroy {
     this.isLoading$ = this.isLoadingSubject.asObservable();
     const subscr = this.getUserByToken().subscribe();
     this.unsubscribe.push(subscr);
+  }
+
+
+  signup(email, password): Observable<ISignUpResult> {
+    return from(Auth.signUp({
+      username: email,
+      password: password,
+      attributes: {
+        email: email
+      }
+    }));
   }
 
   // public methods
